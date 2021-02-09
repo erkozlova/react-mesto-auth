@@ -26,7 +26,7 @@ function Card(props) {
   }, [currentUser, props.card.owner._id])
 
   return (
-    <li className="elements__card" key={props.card._id}>
+    <li className="elements__card" >
       <img className="elements__image" src={props.card.link} alt={`${props.card.name}`} onClick={handleClick}/>
       { isOwn &&  <button className="elements__delete" type="button" onClick={handleDeleteClick}></button> }
       <div className="elements__info">

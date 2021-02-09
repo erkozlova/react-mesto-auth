@@ -1,7 +1,6 @@
 import React from "react";
 import { withRouter } from 'react-router-dom'
 import Form from "./Form";
-import { authorize, getUser } from '../../utils/auth.js';
 
 function Login(props) {
   const [email, setEmail] = React.useState("");
@@ -17,14 +16,7 @@ function Login(props) {
 
   function handleLoginSubmit(evt) {
     evt.preventDefault();
-    authorize(password, email).then(() => {
-      const jwt = localStorage.getItem('token');
-      getUser(jwt).then((result) => {
-        props.getEmail(result.data.email);
-        props.loggedInOn();
-        props.history.push('/');
-      });
-    });
+    props.handleLoginUser(password, email);
   }
 
   return (

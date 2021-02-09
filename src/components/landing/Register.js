@@ -2,8 +2,6 @@ import { Link } from "react-router-dom";
 
 import React from "react";
 import Form from "./Form";
-import { register } from '../../utils/auth.js'
-
 
 function Register(props) {
   const [email, setEmail] = React.useState("");
@@ -19,16 +17,7 @@ function Register(props) {
 
   function handleRegisterSubmit(evt) {
     evt.preventDefault();
-    register(password, email).then((data) => {
-      if(data) {
-        props.handleInfoTooltip(true);
-      }
-      else {
-        props.handleInfoTooltip(false);
-      }
-    }).catch((err)=>{
-      props.handleInfoTooltip(false);
-    });
+    props.handleRegisterUser(password, email);
   }
 
   return (

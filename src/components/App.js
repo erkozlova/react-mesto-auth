@@ -11,10 +11,10 @@ import EditAvatarPopup from "./landing/EditAvatarPopup";
 import AddPlacePopup from "./landing/AddPlacePopup";
 import Register from "./landing/Register";
 import Login from "./landing/Login";
-import api from "../utils/api.js";
 import ProtectedRoute from "./landing/ProtectedRoute";
 import InfoTooltip from "./landing/InfoTooltip";
-import { getUser } from '../utils/auth';
+import api from "../utils/api.js";
+import { getUser, register, authorize } from "../utils/auth";
 
 function App(props) {
   const [currentUser, setCurrentUser] = React.useState({});
@@ -38,7 +38,7 @@ function App(props) {
   const [infoTooltipPopup, setInfoTooltipPopup] = React.useState(false);
 
   // Email пользователя для Header
-  const [email, setEmail] = React.useState('');
+  const [email, setEmail] = React.useState("");
 
   // Переменная успешности запроса при регистрации
   const [isSuccess, setIsSuccess] = React.useState(false);
@@ -60,7 +60,7 @@ function App(props) {
 
   // Открытие попапа информации о регистрации
   function handleInfoTooltip(isOk) {
-    isOk? setIsSuccess(true) : setIsSuccess(false);
+    isOk ? setIsSuccess(true) : setIsSuccess(false);
     setInfoTooltipPopup(true);
   }
 
@@ -71,9 +71,9 @@ function App(props) {
 
   // Изменение статуса пользователя залогинен на незалогинен
   function loggedInOff() {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     setLoggedIn(false);
-    props.history.push('/sign-in');
+    props.history.push("/sign-in");
   }
 
   // Изменение статуса пользователя незалогинен на залогинен
@@ -166,6 +166,38 @@ function App(props) {
       });
   }
 
+  // Регистрация пользователя
+  function handleRegisterUser(password, email) {
+    register(password, email)
+      .then((data) => {
+        if (data) {
+          handleInfoTooltip(true);
+        } else {
+          handleInfoTooltip(false);
+        }
+      })
+      .catch((err) => {
+        handleInfoTooltip(false);
+        console.log(err);
+      });
+  }
+
+  // Авторизация пользователя
+  function handleLoginUser(password, email) {
+    authorize(password, email)
+      .then(() => {
+        const jwt = localStorage.getItem("token");
+        getUser(jwt).then((result) => {
+          getEmail(result.data.email);
+          loggedInOn();
+          props.history.push("/");
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
   React.useEffect(() => {
     api
       .getAppInfo()
@@ -181,34 +213,33 @@ function App(props) {
       });
   }, []);
 
-
-
-
-// Проверяем токен при отрисовке странице
-React.useEffect(() => {
-  if (localStorage.getItem('token')){
-    const jwt = localStorage.getItem('token');
-    getUser(jwt).then((result) => {
-      if(result) {
-        getEmail(result.data.email);
-        loggedInOn();
-        props.history.push('/');
-      }
-    })
-  }
-}, [props.history]);
-
-
+  // Проверяем токен при отрисовке странице
+  React.useEffect(() => {
+    if (localStorage.getItem("token")) {
+      const jwt = localStorage.getItem("token");
+      getUser(jwt)
+        .then((result) => {
+          if (result) {
+            getEmail(result.data.email);
+            loggedInOn();
+            props.history.push("/");
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, [props.history]);
 
   return (
     <CurrentUserContext.Provider value={currentUser}>
       <Header email={email} isLoggedIn={loggedIn} loggedInOff={loggedInOff} />
       <Switch>
         <Route path="/sign-up">
-          <Register handleInfoTooltip={handleInfoTooltip} />
+          <Register handleRegisterUser={handleRegisterUser} />
         </Route>
         <Route path="/sign-in">
-          <Login getEmail={getEmail} loggedInOn={loggedInOn}/>
+          <Login handleLoginUser={handleLoginUser} />
         </Route>
         <ProtectedRoute
           path="/"
